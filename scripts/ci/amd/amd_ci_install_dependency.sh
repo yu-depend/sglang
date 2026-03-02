@@ -280,6 +280,12 @@ if [[ "${NEED_REBUILD}" == "true" ]]; then
         GPU_ARCHS=${GPU_ARCH_LIST} python3 setup.py develop
     "
 
+    # install AITER extra dependencies (e.g. FlyDSL)
+    docker exec ci_sglang bash -c "
+        cd /sgl-workspace/aiter && \
+        pip install -r requirements.txt
+    "
+
     echo "[CI-AITER-CHECK] === AITER REBUILD COMPLETE ==="
 fi
 
