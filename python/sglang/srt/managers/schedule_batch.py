@@ -2003,10 +2003,6 @@ class ScheduleBatch(ScheduleBatchDisaggregationDecodeMixin):
 
         # Allocate memory
         self.out_cache_loc = alloc_for_decode(self, token_per_req=1)
-        if self.hisparse_coordinator is not None:
-            self.hisparse_coordinator.map_last_loc_to_buffer(
-                self.out_cache_loc, self.req_pool_indices
-            )
 
         # todo hisparse: be careful about meta data modification
         # Update req-level memory management fields
@@ -2027,6 +2023,11 @@ class ScheduleBatch(ScheduleBatchDisaggregationDecodeMixin):
             self.seq_lens_cpu.add_(1)
             self.orig_seq_lens.add_(1)
         self.seq_lens_sum += bs
+
+        if self.hisparse_coordinator is not None:
+            self.hisparse_coordinator.map_last_loc_to_buffer(
+                self.seq_lens, self.out_cache_loc, self.req_pool_indices
+            )
 
         if get_global_server_args().enable_mamba_extra_buffer():
             self.mamba_track_indices = torch.tensor(

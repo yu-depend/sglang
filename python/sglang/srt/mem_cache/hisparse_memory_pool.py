@@ -7,7 +7,6 @@ import torch
 from sgl_kernel.kvcacheio import transfer_kv_all_layer_mla
 
 from sglang.srt.layers.radix_attention import RadixAttention
-
 from sglang.srt.mem_cache.allocator import (
     BaseTokenToKVPoolAllocator,
     PagedTokenToKVPoolAllocator,
@@ -31,6 +30,7 @@ class HiSparseNSATokenToKVPool(NSATokenToKVPool):
         start_layer: Optional[int] = None,
         end_layer: Optional[int] = None,
     ):
+        # todo hisparse: fix the hack for index buf size
         super().__init__(
             size=size,
             page_size=page_size,
@@ -44,7 +44,9 @@ class HiSparseNSATokenToKVPool(NSATokenToKVPool):
             kv_cache_dim=kv_cache_dim,
             start_layer=start_layer,
             end_layer=end_layer,
+            index_buf_size=size * 2,
         )
+        self.bytes_per_token = self.kv_cache_dim * self.dtype.itemsize
 
     def register_mapping(self, full_to_hisparse_device_index_mapping: torch.Tensor):
         self.full_to_hisparse_device_index_mapping = (
@@ -94,7 +96,7 @@ class HiSparseNSATokenToKVPool(NSATokenToKVPool):
             dst_layers=self.data_ptrs,
             src_indices=src_indices,
             dst_indices=dst_indices,
-            item_size=self.kv_cache_total_dim,
+            item_size=self.bytes_per_token,
             num_layers=self.layer_num,
         )
 
@@ -263,7 +265,7 @@ class HiSparseTokenToKVPoolAllocator(BaseTokenToKVPoolAllocator):
 
         return logical_indices
 
-    def alloc_decode_with_buffer(
+    def alloc_decode(
         self,
         seq_lens: torch.Tensor,
         seq_lens_cpu: torch.Tensor,
@@ -275,7 +277,7 @@ class HiSparseTokenToKVPoolAllocator(BaseTokenToKVPoolAllocator):
 
         return logical_indices
 
-    def alloc_decode(
+    def alloc_decode_debug(
         self,
         seq_lens: torch.Tensor,
         seq_lens_cpu: torch.Tensor,
@@ -309,25 +311,29 @@ class HiSparseTokenToKVPoolAllocator(BaseTokenToKVPoolAllocator):
         self.logical_attn_allocator.clear()
         self.hisparse_attn_allocator.clear()
         # todo hisparse: shuffle the free pages to trigger memory mapping failure more easily, to be removed
-        self.hisparse_attn_allocator.free_pages = (
-            self.hisparse_attn_allocator.free_pages[
-                torch.randperm(len(self.hisparse_attn_allocator.free_pages))
-            ]
-        )
+        # self.hisparse_attn_allocator.free_pages = (
+        #     self.hisparse_attn_allocator.free_pages[
+        #         torch.randperm(len(self.hisparse_attn_allocator.free_pages))
+        #     ]
+        # )
 
         # Note: the last item is -1, we don't clear it, see the comment in __init__
         self.full_to_hisparse_device_index_mapping[:-1].fill_(0)
         self.is_not_in_free_group = True
         self.free_group = []
 
+    def free_group_begin(self):
+        return
+
+    def free_group_end(self):
+        return
+
     def free(self, free_index: torch.Tensor):
         if free_index.numel() == 0:
             return
 
-        # NOTE: the API is not idempotent.
         if self.is_not_in_free_group:
             self.logical_attn_allocator.free(free_index)
-            # free activities will be associated with device buffers
             self.free_hisparse(free_index)
         else:
             self.free_group.append(free_index)
