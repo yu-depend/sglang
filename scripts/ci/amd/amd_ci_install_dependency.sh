@@ -166,7 +166,7 @@ EOF
 
   docker exec ci_sglang pip install --cache-dir=/sgl-data/pip-cache huggingface_hub[hf_xet]
   docker exec ci_sglang pip install --cache-dir=/sgl-data/pip-cache pytest
-  docker exec ci_sglang pip install --cache-dir=/sgl-data/pip-cache rich
+  docker exec ci_sglang pip install --cache-dir=/sgl-data/pip-cache rich polars
 
   # Install cache-dit for qwen_image_t2i_cache_dit_enabled test (added in PR 16204)
   docker exec ci_sglang pip install --cache-dir=/sgl-data/pip-cache cache-dit || echo "cache-dit installation failed"
