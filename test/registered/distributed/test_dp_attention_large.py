@@ -60,6 +60,10 @@ def _amd_dp_attention_args():
     ]
 
 
+@unittest.skipIf(
+    is_in_amd_ci(),
+    "DeepSeek MLA forward_mla NameError on AMD (batched_gemm not defined)",
+)
 class TestDPAttentionDP2TP4(
     CustomTestCase,
     TestJSONConstrainedMixin,

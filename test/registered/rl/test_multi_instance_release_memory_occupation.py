@@ -67,7 +67,7 @@ class EngineWrapper:
             random_seed=random_seed,
             mem_fraction_static=mem_fraction_static,
             base_gpu_id=base_gpu_id,
-            enable_memory_saver=True,
+            enable_memory_saver=not is_in_amd_ci(),
             tp_size=self._tp_size,
             node_rank=node_rank,
             nnodes=1,
