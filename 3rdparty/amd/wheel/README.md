@@ -1,4 +1,4 @@
-# sglang-kernel
+# sglang-kernel (prior sgl-kernel)
 
 Building and releasing `sglang-kernel` as a wheel is a part of the release workflow. Check [release-whl-kernel.yml](https://github.com/sgl-project/sglang/blob/main/.github/workflows/release-whl-kernel.yml) for details.
 
