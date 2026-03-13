@@ -2153,9 +2153,9 @@ class RemoteInstanceModelLoader(BaseModelLoader):
                 )
         elif (
             load_config.remote_instance_weight_loader_backend
-            == RemoteInstanceWeightLoaderBackend.MODEL_EXPRESS
+            == RemoteInstanceWeightLoaderBackend.MODELEXPRESS
         ):
-            self.load_model_from_model_express(
+            self.load_model_from_modelexpress(
                 model, load_config, device_config,
             )
         else:
@@ -2271,7 +2271,7 @@ class RemoteInstanceModelLoader(BaseModelLoader):
 
         return True
 
-    def load_model_from_model_express(
+    def load_model_from_modelexpress(
         self, model, load_config: LoadConfig, device_config: DeviceConfig,
     ):
         """Load weights via ModelExpress coordination + TransferEngine RDMA."""
@@ -2280,10 +2280,10 @@ class RemoteInstanceModelLoader(BaseModelLoader):
         transfer_engine = load_config.remote_instance_weight_loader_transfer_engine
         if transfer_engine is None:
             raise RuntimeError(
-                "TransferEngine is not initialized for model_express backend."
+                "TransferEngine is not initialized for modelexpress backend."
             )
         tp_rank = load_config.tp_rank
-        model_name = load_config.model_express_model_name
+        model_name = load_config.modelexpress_model_name
 
         logger.info(
             "ModelExpress: registering memory regions for tp_rank=%d...", tp_rank
@@ -2293,7 +2293,7 @@ class RemoteInstanceModelLoader(BaseModelLoader):
         )
 
         # Wait for seed to be ready via ModelExpress
-        mx_client = MxClient(server_url=load_config.model_express_url)
+        mx_client = MxClient(server_url=load_config.modelexpress_url)
         try:
             logger.info(
                 "ModelExpress: waiting for seed ready (model=%s)...",
