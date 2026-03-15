@@ -323,20 +323,21 @@ class HiSparseCoordinator:
         if self.decode_producer_stream is not None:
             device_module.current_stream().wait_stream(self.decode_producer_stream)
 
+        actual_token_pos = seq_lens - 2
         last_token_loc = torch.minimum(
             seq_lens - 2,
             torch.full_like(seq_lens, self.device_buffer_size),
         )
 
         # Skip positions already backed up (first decode after prefill)
-        needs_backup = self.req_to_host_pool[req_pool_indices, last_token_loc] < 0
+        needs_backup = self.req_to_host_pool[req_pool_indices, actual_token_pos] < 0
         if not torch.any(needs_backup):
             return
 
         backup_req_indices = req_pool_indices[needs_backup]
-        backup_positions = last_token_loc[needs_backup]
+        backup_positions = actual_token_pos[needs_backup]
         device_locs = self.req_to_device_buffer[
-            backup_req_indices, self.device_buffer_size
+            backup_req_indices, last_token_loc[needs_backup]
         ]
 
         host_locs = self.mem_pool_host.alloc(len(device_locs))
