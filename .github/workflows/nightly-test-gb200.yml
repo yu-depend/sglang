@@ -50,7 +50,6 @@ jobs:
       matrix:
         config: ${{ fromJson(needs.setup.outputs.matrix) }}
     env:
-      RUNNER_NAME: ${{ runner.name }}
       FRAMEWORK: dynamo-sglang
       MODEL: ${{ matrix.config.model }}
       MODEL_PREFIX: ${{ matrix.config.model_prefix }}
@@ -67,6 +66,8 @@ jobs:
 
       - name: Clean up prior Slurm jobs from this runner
         continue-on-error: true
+        env:
+          RUNNER_NAME: ${{ runner.name }}
         run: |
           STALE_JOBS=$(squeue --noheader --format="%i %j" | grep "${RUNNER_NAME}" | awk '{print $1}')
           if [ -n "$STALE_JOBS" ]; then
@@ -76,6 +77,8 @@ jobs:
 
       - name: Launch GB200 benchmark via srt-slurm
         timeout-minutes: 360
+        env:
+          RUNNER_NAME: ${{ runner.name }}
         run: bash scripts/ci/slurm/launch_gb200.sh
 
       - name: Upload results
@@ -92,6 +95,8 @@ jobs:
       - name: Clean up Slurm jobs on failure/cancel
         if: failure() || cancelled()
         continue-on-error: true
+        env:
+          RUNNER_NAME: ${{ runner.name }}
         run: |
           ACTIVE_JOBS=$(squeue --noheader --format="%i %j" | grep "${RUNNER_NAME}" | awk '{print $1}')
           if [ -n "$ACTIVE_JOBS" ]; then
