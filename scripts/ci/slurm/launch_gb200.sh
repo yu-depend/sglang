@@ -55,13 +55,22 @@ else
 fi
 
 # ---------------------------------------------------------------------------
+# Set up per-runner Lustre workspace (cleaned before each run, accessible
+# to both the runner and compute nodes)
+# ---------------------------------------------------------------------------
+LUSTRE_WORKSPACE="/mnt/lustre01/users-public/sglang-ci/workspace/${RUNNER_NAME}"
+rm -rf "$LUSTRE_WORKSPACE"
+mkdir -p "$LUSTRE_WORKSPACE"
+
+# ---------------------------------------------------------------------------
 # Clone and set up srt-slurm
 # ---------------------------------------------------------------------------
-SRT_REPO_DIR="$GITHUB_WORKSPACE/srt-slurm"
+SRT_REPO_DIR="$LUSTRE_WORKSPACE/srt-slurm"
+# SRT_REPO_DIR="$GITHUB_WORKSPACE/srt-slurm"
 
-if [ -d "$SRT_REPO_DIR" ]; then
-    rm -rf "$SRT_REPO_DIR"
-fi
+# if [ -d "$SRT_REPO_DIR" ]; then
+#     rm -rf "$SRT_REPO_DIR"
+# fi
 
 git clone https://github.com/ishandhanani/srt-slurm.git "$SRT_REPO_DIR"
 cd "$SRT_REPO_DIR"
