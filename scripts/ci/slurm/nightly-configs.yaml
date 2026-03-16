@@ -89,6 +89,6 @@ dsr1-fp4-gb200-dynamo-sglang:
         #   # https://github.com/ishandhanani/srt-slurm/blob/sa-submission-q1-2026/recipes/gb200-fp4/8k1k/mid-curve.yaml
         #   config_file: recipes/gb200-fp4/8k1k/mid-curve.yaml
 
-        # - conc-list: [2048]
-        #   # https://github.com/ishandhanani/srt-slurm/blob/sa-submission-q1-2026/recipes/gb200-fp4/8k1k/max-tpt.yaml
-        #   config_file: recipes/gb200-fp4/8k1k/max-tpt.yaml
+        - conc-list: [2048]
+          # https://github.com/ishandhanani/srt-slurm/blob/sa-submission-q1-2026/recipes/gb200-fp4/8k1k/max-tpt.yaml
+          config_file: recipes/gb200-fp4/8k1k/max-tpt.yaml
