@@ -768,7 +768,9 @@ TWO_GPU_CASES_A = [
             prompt=T2V_PROMPT,
         ),
     ),
-    # TeaCache acceleration test for Wan2.2 T2V A14B
+    # TeaCache smoke test for Wan2.2 T2V A14B — verifies enable_teacache=True
+    # doesn't crash. Perf check disabled because Wan2.2-specific TeaCache
+    # coefficients are not yet calibrated (teacache_params=None, so no speedup).
     DiffusionTestCase(
         "wan2_2_t2v_a14b_teacache_2gpu",
         DiffusionServerArgs(
@@ -781,6 +783,7 @@ TWO_GPU_CASES_A = [
             prompt=T2V_PROMPT,
             extras={"enable_teacache": True},
         ),
+        run_perf_check=False,
     ),
     # LoRA test case for transformer_2 support
     DiffusionTestCase(
