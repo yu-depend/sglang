@@ -136,6 +136,7 @@ class SchedulerPPMixin:
                                 result.pp_hidden_states_proxy_tensors.tensors,
                                 async_send=True,
                                 msg_type="proxy",
+                                use_all_gather=False,
                             )
 
                 self.pp_outputs = next_pp_outputs
@@ -308,6 +309,7 @@ class SchedulerPPMixin:
                             result.pp_hidden_states_proxy_tensors.tensors,
                             async_send=True,
                             msg_type="proxy",
+                            use_all_gather=False,
                         )
 
                 self.pp_outputs = next_pp_outputs
@@ -489,6 +491,7 @@ class SchedulerPPMixin:
                             result.pp_hidden_states_proxy_tensors.tensors,
                             async_send=True,
                             msg_type="proxy",
+                            use_all_gather=False,
                         )
 
                 self.pp_outputs = next_pp_outputs
@@ -937,6 +940,7 @@ class SchedulerPPMixin:
         tensor_dict: Dict[str, torch.Tensor],
         async_send: bool = True,
         msg_type: str = "default",
+        use_all_gather: bool = True,
     ):
         # Warn once if using default untyped messages
         if msg_type == "default":
@@ -945,13 +949,16 @@ class SchedulerPPMixin:
                 "Consider adding msg_type='proxy' or 'output' to avoid recv conflicts."
             )
         tensor_dict["__msg_type__"] = msg_type
+        all_gather_group = (
+            self.attn_tp_group
+            if self.require_attn_tp_allgather and use_all_gather
+            else None
+        )
         p2p_work = []
         p2p_work.extend(
             self.pp_group.send_tensor_dict(
                 tensor_dict=tensor_dict,
-                all_gather_group=(
-                    self.attn_tp_group if self.require_attn_tp_allgather else None
-                ),
+                all_gather_group=all_gather_group,
                 async_send=async_send,
             )
         )
@@ -996,9 +1003,7 @@ class SchedulerPPMixin:
             pp_proxy_tensors = PPProxyTensors(
                 self._pp_recv_typed_dict(
                     expected_kind="proxy",
-                    all_gather_group=(
-                        self.attn_tp_group if self.require_attn_tp_allgather else None
-                    ),
+                    all_gather_group=None,
                 )
             )
         return pp_proxy_tensors
