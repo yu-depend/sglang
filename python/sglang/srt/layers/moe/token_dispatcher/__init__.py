@@ -33,6 +33,7 @@ from sglang.srt.layers.moe.token_dispatcher.moriep import (
     MoriEPNormalCombineInput,
     MoriEPNormalDispatchOutput,
 )
+from sglang.srt.layers.moe.token_dispatcher.nccl_ep import NcclEpDispatcher
 from sglang.srt.layers.moe.token_dispatcher.nixl import (
     NixlEPCombineInput,
     NixlEPDispatcher,
@@ -75,5 +76,6 @@ __all__ = [
     "DeepEPLLDispatchOutput",
     "DeepEPLLCombineInput",
     "DeepEPNormalCombineInput",
+    "NcclEpDispatcher",
     "NpuFuseEPDispatcher",
 ]
