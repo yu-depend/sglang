@@ -234,10 +234,13 @@ class ReasonerGrammarBackend(BaseGrammarBackend):
                 f"could not be encoded by the tokenizer."
             )
         if len(think_end_ids) != 1:
-            raise ValueError(
+            logger.warning(
                 f"think_end_token '{reasoning_parser.detector.think_end_token}' "
-                "must encode to exactly one token for constrained reasoning."
+                f"encodes to {len(think_end_ids)} tokens; grammar-based reasoning "
+                "constraints will use the first token ID only. "
+                "Strict thinking mode is disabled for multi-token end markers."
             )
+            enable_strict_thinking = False
         self.think_end_id = think_end_ids[0]
         self._enable_strict_thinking = enable_strict_thinking
         self.think_excluded_token_ids = self._get_think_excluded_token_ids(
