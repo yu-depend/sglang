@@ -139,10 +139,18 @@ def select_last_verified_seed(
 ) -> Tuple[torch.Tensor, torch.Tensor]:
     counts = draft_input.num_accepted_tokens.to(torch.long)
     last_indices = torch.cumsum(counts, dim=0) - 1
-    return (
-        draft_input.bonus_tokens[last_indices],
-        draft_input.hidden_states[last_indices],
-    )
+    if draft_input.bonus_tokens is not None:
+        return (
+            draft_input.bonus_tokens[last_indices],
+            draft_input.hidden_states[last_indices],
+        )
+    else:
+        # Fallback for when prepare_extend_after_decode hasn't been called yet
+        # (e.g., first request in Frozen-KV MTP path, #24912).
+        return (
+            draft_input.input_ids[last_indices],
+            draft_input.hidden_states[last_indices],
+        )
 
 
 def capture_for_decode(
