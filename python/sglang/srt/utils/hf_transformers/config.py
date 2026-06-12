@@ -251,7 +251,36 @@ def get_config(
     )
 
     if model_override_args:
-        config.update(model_override_args)
+        # Handle nested text_config overrides safely: merge into the existing
+        # PretrainedConfig object instead of replacing it with a plain dict.
+        override_args = dict(model_override_args)
+        if "text_config" in override_args:
+            text_override = override_args.pop("text_config")
+            if hasattr(config, "text_config") and isinstance(text_override, dict):
+                if isinstance(config.text_config, dict):
+                    config.text_config.update(text_override)
+                else:
+                    for k, v in text_override.items():
+                        setattr(config.text_config, k, v)
+
+        config.update(override_args)
+
+        # For multimodal models with a separate text_config, ensure that
+        # rope/quant overrides applied to the parent also reach the sub-config
+        # that the language model is actually instantiated from.
+        text_config = get_hf_text_config(config)
+        if text_config is not config:
+            for key in ("rope_scaling", "rope_parameters", "quantization_config"):
+                if key in override_args and not hasattr(text_config, key):
+                    val = getattr(config, key, None)
+                    if val is not None:
+                        setattr(text_config, key, val)
+            # transformers v5 auto-generates rope_parameters from rope_scaling
+            # via update(). Re-apply on text_config so the LM sees the change.
+            if "rope_scaling" in override_args:
+                text_config.update(
+                    {"rope_scaling": override_args["rope_scaling"]}
+                )
 
     if is_gguf:
         if config.model_type not in MODEL_FOR_CAUSAL_LM_MAPPING_NAMES:
