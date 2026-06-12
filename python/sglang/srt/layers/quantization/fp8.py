@@ -1785,8 +1785,12 @@ class Fp8MoEMethod(FusedMoEMethodBase):
         ):
             self.runner = MoeRunner(moe_runner_backend, moe_runner_config)
         else:
-            # TODO(cwan): refactor other backends
-            pass
+            raise ValueError(
+                f"MOE runner backend '{moe_runner_backend.value}' is not supported "
+                f"with FP8 quantization. Supported backends are: deep_gemm, triton, "
+                f"aiter, flashinfer_trtllm, flashinfer_trtllm_routed. "
+                f"Consider using --moe-runner-backend cutlass instead."
+            )
 
     def get_triton_quant_info(self, layer: torch.nn.Module) -> TritonMoeQuantInfo:
         return TritonMoeQuantInfo(
